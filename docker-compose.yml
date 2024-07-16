@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.3.0
+    container_name: mysql83
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "sd1991308"
+    volumes:
+      - /proshoes/docker/_mysqldb/_data:/var/lib/mysql
+    command: [
+      "--character-set-server=utf8mb4",
+      "--collation-server=utf8mb4_unicode_ci"
+    ]
+    restart: always
+    networks:
+      - proshoes_network
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - api
+      - webapp
+    volumes:
+      - /proshoes/nginx.conf:/etc/nginx/nginx.conf
+      - /proshoes/docker/nginx-image-server/images:/usr/share/nginx/html/images
+    restart: always
+    networks:
+      - proshoes_network
+
+  api:
+    image: api:latest
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+    volumes:
+      - /proshoes/.api_env:/app/.env
+    restart: always
+    networks:
+      - proshoes_network
+
+  webapp:
+    image: webapp:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    volumes:
+      - /proshoes/.webapp_env:/app/.env
+    restart: always
+    networks:
+      - proshoes_network
+
+networks:
+  proshoes_network:
+    driver: bridge
